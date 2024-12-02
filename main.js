@@ -13,6 +13,7 @@ import {
   RingGeometry,
   Scene,
   SphereGeometry,
+  SRGBColorSpace,
   TextureLoader,
   WebGLRenderer,
 } from "three";
@@ -33,7 +34,8 @@ import plutoTexture from "./img/pluto.jpg";
 import saturnRingTexture from "./img/saturn ring.png";
 import uranusRingTexture from "./img/uranus ring.png";
 
-const renderer = new WebGLRenderer();
+const renderer = new WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 const camera = new PerspectiveCamera(
   45,
   window.innerWidth / window.innerHeight,
@@ -120,19 +122,23 @@ const planets = [
   },
 ];
 
-const pointLight = new PointLight(0xffffff, 5000, 300);
+const pointLight = new PointLight(0xffffff, 3, 300, 0.2);
 const ambientLight = new AmbientLight(0x333333);
 const sun = (() => {
   const geometry = new SphereGeometry(16, 30, 30);
+  const sunTextureMap = textureLoader.load(sunTexture);
+  sunTextureMap.colorSpace = SRGBColorSpace;
   const material = new MeshBasicMaterial({
-    map: textureLoader.load(sunTexture),
+    map: sunTextureMap,
   });
   return new Mesh(geometry, material);
 })();
 
 const createPlanet = (radius, texture, distance, ring) => {
   const geo = new SphereGeometry(radius, 30, 30);
-  const mat = new MeshStandardMaterial({ map: textureLoader.load(texture) });
+  const textureMap = textureLoader.load(texture);
+  textureMap.colorSpace = SRGBColorSpace;
+  const mat = new MeshStandardMaterial({ map: textureMap });
   const planet = new Mesh(geo, mat);
   planet.position.x = distance;
   const container = new Object3D();
@@ -140,8 +146,10 @@ const createPlanet = (radius, texture, distance, ring) => {
 
   if (ring) {
     const ringGeo = new RingGeometry(ring.innerRadius, ring.outerRadius, 32);
+    const ringTextureMap = textureLoader.load(ring.texture);
+    ringTextureMap.colorSpace = SRGBColorSpace;
     const ringMat = new MeshBasicMaterial({
-      map: textureLoader.load(ring.texture),
+      map: ringTextureMap,
       side: DoubleSide,
       color: "#f2f2f2",
     });
